@@ -2,7 +2,6 @@
 #include <Arduino.h>
 #include <math.h>
 #include "helpers.h"
-
 ////    Constants    ////
 String logFileName = "log.txt";
 const char outputFormat[] =
@@ -14,7 +13,7 @@ Location:    %lf, %lf
 
 )""";
 
-bool idle_flag = true; 
+bool idle_flag = false;
 ////    Initilization setup    ////
 void setup(void)
 {
@@ -62,6 +61,26 @@ void setup(void)
             initialized = true;
         }
     }
+    // physcial toggle switch stuff:
+    pinMode(pin_switch, INPUT_PULLDOWN);
+    bool sw =0; 
+    while (true)
+    {
+
+ sw = digitalRead(pin_switch);
+
+        if (sw==1)
+        {
+            break;
+        }
+        
+        Serial.println(sw);
+        delay(500);
+
+    }
+    RFD_SERIAL.printf("transmitting\n");
+    RFD_SERIAL.printf("transmitting\n");
+    RFD_SERIAL.printf("transmitting\n");
 }
 
 ////    Main loop    ////
@@ -114,7 +133,7 @@ void loop(void)
         */
     }
 
-   if (myICM.dataReady())
+    if (myICM.dataReady())
     {
         myICM.getAGMT();
         getScaledAGMT(&myICM, &x, &y, &z);
@@ -165,24 +184,24 @@ void loop(void)
 loopEnd:
     while (millis() - start <= freq) // print every 1 second
     {
-        /*while (idle_flag==true)
+        while (idle_flag == true)
         {
-           
-                String command = RFD_SERIAL.readStringUntil('\n');
-                command.toLowerCase();
+            /*
+                 String command = RFD_SERIAL.readStringUntil('\n');
+                 command.toLowerCase();
 
-                if (command.equals("launch"))
-                {
-                    idle_flag = false;
-                    break;
-                }
-                else
-                {
-                    RFD_SERIAL.printf("idle\n");
-                    Serial.printf("command \"%s\" unrecognized\n", command.c_str());
-                }
-            
-        }*/
+                 if (command.equals("launch"))
+                 {
+                     idle_flag = false;
+                     break;
+                 }
+                 else
+                 {
+                     RFD_SERIAL.printf("idle\n");
+                     Serial.printf("command \"%s\" unrecognized\n", command.c_str());
+                 }
+             */
+        }
     }
 
 loopEndNoDelay:;

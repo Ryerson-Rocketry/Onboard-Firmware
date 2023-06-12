@@ -20,6 +20,7 @@
 #define BUZZER_ENABLE PIN_A13
 #define WIRE_PORT Wire
 #define AD0_VAL 0
+#define pin_switch 23
 
 ////    Objects    ////
 Ms5611      baro;
