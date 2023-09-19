@@ -2,18 +2,13 @@
 #include <Arduino.h>
 #include <math.h>
 #include "helpers.h"
-////    Constants    ////
-String logFileName = "log.txt";
-const char outputFormat[] =
-    R"""(
-timestamp:   %lu
-x = %lf g    y = %lf g   z = %lf g   total = %lf g
-T = %lf C    P = %lf mbar
-Location:    %lf, %lf
+bool rfd_comms_ini = true;
 
-)""";
-
-bool idle_flag = false;
+double temp, pres, lon, lat;
+// float PDOP, VDOP, HDOP;
+float x, y, z, r = 0;
+uint32_t start;
+uint8_t counter = 0;
 ////    Initilization setup    ////
 void setup(void)
 {
@@ -22,7 +17,7 @@ void setup(void)
     buzzFor(1000, 1000);
 
     // start serial monitor
-    Serial.begin(115200);
+    Serial.begin(SERIAL_MONITOR_BAUD);
     if (!Serial)
     {
         buzzFor(100, 50);
@@ -35,65 +30,62 @@ void setup(void)
 
     setParts();
 
-    // RFD_SERIAL.printf("idle\n");
+    RFD_SERIAL.printf("idle\n");
 
     // basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
+    /*
+    while(true)
+     {
+         if(RFD_SERIAL.available())
+         {
+             String command = RFD_SERIAL.readStringUntil('\n');
+             command.toLowerCase();
 
-    // RFD_SERIAL.printf("idle\n");
+             if(command.equals("launch"))
+             {
+                 break;
+             }
+             else
+             {
+                 Serial.printf("command \"%s\" unrecognized\n", command.c_str());
+             }
+         }
+     }
 
-    WIRE_PORT.begin();
-    WIRE_PORT.setClock(400000);
+
+     Serial.printf("launching\n");
+     //RFD_SERIAL.printf("idle\n");
+
+ */
+    IMU_WIRE.begin();
+    IMU_WIRE.setClock(400000);
 
     bool initialized = false;
     if (!initialized)
     {
-        myICM.begin(WIRE_PORT, AD0_VAL);
+        myICM.begin(IMU_WIRE, AD0_VAL);
 
         Serial.print(F("Initialization of the sensor returned: "));
         Serial.println(myICM.statusString());
         if (myICM.status != ICM_20948_Stat_Ok)
         {
             Serial.println("Trying again...");
-            delay(500);
+            //         delay(500);
         }
         else
         {
             initialized = true;
         }
     }
-    // physcial toggle switch stuff:
-    pinMode(pin_switch, INPUT_PULLDOWN);
-    bool sw =0; 
-    while (true)
-    {
-
- sw = digitalRead(pin_switch);
-
-        if (sw==1)
-        {
-            break;
-        }
-        
-        Serial.println(sw);
-        delay(500);
-
-    }
-    RFD_SERIAL.printf("transmitting\n");
-    RFD_SERIAL.printf("transmitting\n");
-    RFD_SERIAL.printf("transmitting\n");
 }
 
 ////    Main loop    ////
 void loop(void)
 {
-    const uint32_t freq = 2000;
     static uint32_t timestamp = 0;
 
-    double temp, pres, lon, lat;
-    // float PDOP, VDOP, HDOP;
-    float x, y, z, r = 0;
     char string[256] = {0};
-    uint32_t start = millis(); // store current time
+    start = millis(); // store current time
 
     setParts();
 
@@ -115,8 +107,7 @@ void loop(void)
         {
             Serial.printf("gps RMC read failed\n");
         }
-        /*
-        if (gps.read_GSA(&opMode, &HDOP, &PDOP, 1000))
+        /*if (gps.read_GSA(&opMode, &HDOP, &PDOP, 1000))
         {
             Serial.println(F("GSA read fail"));
         }
@@ -129,8 +120,7 @@ void loop(void)
         if (gps.read_GGA(&quality, 1000))
         {
             Serial.println(F("GGA read fail"));
-        }
-        */
+        }*/
     }
 
     if (myICM.dataReady())
@@ -171,38 +161,47 @@ void loop(void)
 
     // encode and transmit data
 
-    transmit(x, RRC_HEAD_ACC_X, timestamp);
-    transmit(y, RRC_HEAD_ACC_Y, timestamp);
-    transmit(z, RRC_HEAD_ACC_Z, timestamp);
-    transmit(temp, RRC_HEAD_TEMP, timestamp);
-    transmit(pres, RRC_HEAD_PRESS, timestamp);
-    transmit(lat, RRC_HEAD_GPS_LAT, timestamp);
-    transmit(lon, RRC_HEAD_GPS_LONG, timestamp);
-
-    // loop end lable
-
-loopEnd:
-    while (millis() - start <= freq) // print every 1 second
+    if (rfd_comms_ini == true)
     {
-        while (idle_flag == true)
-        {
-            /*
-                 String command = RFD_SERIAL.readStringUntil('\n');
-                 command.toLowerCase();
 
-                 if (command.equals("launch"))
-                 {
-                     idle_flag = false;
-                     break;
-                 }
-                 else
-                 {
-                     RFD_SERIAL.printf("idle\n");
-                     Serial.printf("command \"%s\" unrecognized\n", command.c_str());
-                 }
-             */
+        String command = RFD_SERIAL.readStringUntil('\n');
+        command.toLowerCase();
+        if (command.equals("launch"))
+        {
+            rfd_comms_ini = false;
+            Serial.printf("launching\n");
+            RFD_SERIAL.printf("start\n");
+        }
+        else
+        {
+            if (counter<=5) // 5 seconds total ; triggers once a second
+            {
+                RFD_SERIAL.printf("idle\n");
+                delay(1000);
+              
+                counter++;
+            }
+            else if (counter>=9999)
+            {
+                counter =0; // reset the counter
+            }
+
+            Serial.printf("command \"%s\" unrecognized\n", command.c_str());
         }
     }
-
-loopEndNoDelay:;
+    else
+    {
+        transmit(x, RRC_HEAD_ACC_X, timestamp);
+        transmit(y, RRC_HEAD_ACC_Y, timestamp);
+        transmit(z, RRC_HEAD_ACC_Z, timestamp);
+        transmit(temp, RRC_HEAD_TEMP, timestamp);
+        transmit(pres, RRC_HEAD_PRESS, timestamp);
+        transmit(lat, RRC_HEAD_GPS_LAT, timestamp);
+        transmit(lon, RRC_HEAD_GPS_LONG, timestamp);
+        Serial.println("transmitting");
+    }
+    while (millis() - start <= freq) // print every 4 second
+    {
+        ;
+    }
 }
