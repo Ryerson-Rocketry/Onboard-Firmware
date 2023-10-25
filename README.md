@@ -19,7 +19,7 @@ git submodule update
 The firmware at the moment successfuly does the folllwing:
 
 * Initlizie and read sensors:
-  * ADXL357 accelerometer
+  *  accelerometer
   * MS5611 barometer
   * Generic NMEA GPS
 * Write readings to builtin SD card
@@ -28,12 +28,10 @@ The firmware at the moment successfuly does the folllwing:
 The following tasks need to be done:
 
 * For the GPS:
-  * look into GPS modules specs similar to that of the featherWeight specifically the Cold & Warm Starts (due to the issue of it shutting off and losing lock when rocket exceeds the COCOM limits)
-  * Make the GPS update at 10 Hz 
-  
-* Handle sensor initalization errors
+  * look into GPS modules with male headers similar to the adafruit ultimate gps
+ * also test the adafruit gps itself(as we have a spare)
 * Order a PCB and field test the system
-* Simulate power transients with Eagle/Kicad
-* rfd900+ frequency switching 
-* Bay thermodynamics(for two stage)
-* Improve the way the rocket descends and lands(dynamic flight stability) 
+* rfd900+ frequency switching (2 stage implementation)
+* test mpu6050 imu and integrate 
+*Bay thermodynamics(for two stage)
+
