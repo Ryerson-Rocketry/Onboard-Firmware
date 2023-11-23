@@ -1,11 +1,16 @@
 ////    Includes    ////
 #include <Arduino.h>
 #include <math.h>
+#include <Wire.h>
 #include "helpers.h"
 bool rfd_comms_ini = true;
 
 double temp, pres, lon, lat;
 // float PDOP, VDOP, HDOP;
+MPU mpu;
+AStruct imu_acc;
+
+
 float x, y, z, r = 0;
 uint32_t start;
 uint8_t counter = 0;
@@ -15,6 +20,11 @@ void setup(void)
     pinMode(BUZZER, OUTPUT);
     pinMode(BUZZER_ENABLE, INPUT_PULLUP);
     buzzFor(1000, 1000);
+    Wire.begin();
+    mpu.pwr_setup();
+    mpu.acc_setup(1);
+    mpu.gyro_setup(3);
+
 
     // start serial monitor
     Serial.begin(SERIAL_MONITOR_BAUD);
@@ -57,10 +67,10 @@ void setup(void)
      //RFD_SERIAL.printf("idle\n");
 
  */
-    IMU_WIRE.begin();
-    IMU_WIRE.setClock(400000);
+    //IMU_WIRE.begin();
+    //IMU_WIRE.setClock(400000);
 
-    bool initialized = false;
+    /*bool initialized = false;
     if (!initialized)
     {
         myICM.begin(IMU_WIRE, AD0_VAL);
@@ -76,7 +86,7 @@ void setup(void)
         {
             initialized = true;
         }
-    }
+    }*/
 }
 
 ////    Main loop    ////
@@ -97,6 +107,7 @@ void loop(void)
             Serial.printf("baro read failed\n");
         }
     }
+    mpu.get_acc(1,&imu_acc);
     int numbSat, quality;
     char opMode;
     float HDOP, PDOP, sigStrength;
@@ -123,7 +134,7 @@ void loop(void)
         }*/
     }
 
-    if (myICM.dataReady())
+    /*if (myICM.dataReady())
     {
         myICM.getAGMT();
         getScaledAGMT(&myICM, &x, &y, &z);
@@ -134,12 +145,12 @@ void loop(void)
     {
         Serial.println("Waiting for data");
         // delay(500);
-    }
+    }*/
 
     // print stuff to serial and SD card (need to call array for xyz, use equation for r here)
     sprintf(
         string, outputFormat,
-        timestamp++, x / 1000, y / 1000, z / 1000, r, temp, pres, lat, lon);
+        timestamp++, imu_acc.XAxis, imu_acc.YAxis, imu_acc.ZAxis, temp, pres, lat, lon);
 
     Serial.printf("%s", string);
 

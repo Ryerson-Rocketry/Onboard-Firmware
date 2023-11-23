@@ -6,9 +6,10 @@
 #include <Arduino.h>
 #include <gps.h>
 #include <ms5611.h>
+#include <MPU6050.h>
 #include <SD.h>
 #include "rrc_encoder/src/rrc_encoder.h"
-#include "ICM_20948.h"
+//#include "ICM_20948.h"
 
 
 ////    Defines    ////
@@ -28,7 +29,7 @@ String logFileName = "log.txt";
 const char outputFormat[] =
     R"""(
 timestamp:   %lu
-x = %lf g    y = %lf g   z = %lf g   total = %lf g
+x = %lf g    y = %lf g   z = %lf g   
 T = %lf C    P = %lf mbar
 Location:    %lf, %lf
 
@@ -45,14 +46,14 @@ struct
     bool    sdcard = false;
     bool    rfd    = false;
 } partsStates;
-ICM_20948_I2C myICM;
+//ICM_20948_I2C myICM;
 
 ////    Functions declairations    ////
 void transmit   (double data, uint8_t header, uint32_t time);
 void debug      (void);
 void buzzFor    (unsigned int time_ms, unsigned int after = 0);
 void setParts   (void);
-void getScaledAGMT(ICM_20948_I2C *sensor);
+//void getScaledAGMT(ICM_20948_I2C *sensor);
 
 ////    Functions definitions    ////
 void transmit(double data, uint8_t header, uint32_t time)
@@ -150,9 +151,11 @@ void setParts(void)
 #endif  //  #ifndef __RRC_HELPER_FUNCS__
 
 //IMU
+/*
 void getScaledAGMT(ICM_20948_I2C *sensor,float *x,float *y,float *z) //array [0]
 {
   *x = sensor->accX();
   *y = sensor->accY();
   *z = sensor->accZ();
 }
+*/
