@@ -19,22 +19,22 @@
 #define BARO_WIRE     Wire1
 #define BUZZER        PIN_A12
 #define BUZZER_ENABLE PIN_A13//always apply
-#define IMU_WIRE Wire
+#define IMU_WIRE Wire2
 #define AD0_VAL 0
 #define SERIAL_MONITOR_BAUD 115200
-#define freq 4000
+long freq = 4000;
 
 ////    Constants    ////
 String logFileName = "log.txt";
 const char outputFormat[] =
     R"""(
 timestamp:   %lu
+V = %lf
 x = %lf g    y = %lf g   z = %lf g   
 T = %lf C    P = %lf mbar
 Location:    %lf, %lf
 
 )""";
-
 
 ////    Objects    ////
 Ms5611      baro;
