@@ -10,6 +10,8 @@ double temp, pres, lon, lat;
 // float PDOP, VDOP, HDOP;
 MPU mpu;
 AStruct imu_acc;
+Adafruit_INA260 ina260 = Adafruit_INA260();
+
 
 float x, y, z, r = 0;
 uint32_t start;
@@ -19,14 +21,21 @@ Adafruit_INA260 ina260 = Adafruit_INA260();
 ////    Initilization setup    ////
 void setup(void)
 {
+
     pinMode(BUZZER, OUTPUT);
     pinMode(BUZZER_ENABLE, INPUT_PULLUP);
     buzzFor(1000, 1000);
     Wire.begin();
+<<<<<<< Updated upstream
+=======
+    Wire1.begin();
+    Wire2.begin();
+>>>>>>> Stashed changes
     ina260.begin();
     mpu.pwr_setup();
     mpu.acc_setup(1);
-    mpu.gyro_setup(3);
+    
+    //mpu.gyro_setup(3);
 
     // start serial monitor
     Serial.begin(SERIAL_MONITOR_BAUD);
@@ -93,7 +102,15 @@ void loop(void)
             Serial.printf("baro read failed\n");
         }
     }
+<<<<<<< Updated upstream
     mpu.get_acc(1, &imu_acc);
+=======
+    float volt_battery= ina260.readBusVoltage();
+    mpu.get_acc(1,&imu_acc);
+    int numbSat, quality;
+    char opMode;
+    float HDOP, PDOP, sigStrength;
+>>>>>>> Stashed changes
     // read gps
     
     if (partsStates.gps)
