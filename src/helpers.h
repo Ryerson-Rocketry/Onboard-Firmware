@@ -6,7 +6,7 @@
 #include <Arduino.h>
 #include <gps.h>
 #include <ms5611.h>
-#include <MPU6050.h>
+#include <MPU6050.h> 
 #include <SD.h>
 #include "rrc_encoder/src/rrc_encoder.h"
 //#include "ICM_20948.h"
@@ -27,6 +27,7 @@
 #define PIN_BLUE       2                                                                                                                         
 
 long freq = 4000;
+bool led_debug = false;
 
 ////    Constants    ////
 String logFileName = "log.txt";
@@ -82,6 +83,7 @@ void buzzFor(unsigned int time_ms, unsigned int after)
         delay(time_ms);
         digitalWrite(BUZZER, LOW);
         delay(after);
+        led_debug = true; 
     }
 }
 
@@ -129,6 +131,15 @@ void errorLED(int errorcode)
       analogWrite(PIN_BLUE,  0);
 
       break;
+      case 6:
+            analogWrite(PIN_RED,   0);
+
+ analogWrite(PIN_GREEN, 0);
+      analogWrite(PIN_BLUE,  0);
+
+      break;
+      
+
   }
 }
 
@@ -136,13 +147,13 @@ void setParts(void)
 {
     // init MS5611
     if(!partsStates.baro)
-    {
-        if(baro.init(&BARO_WIRE))
-        {
+        {        
+        if(baro.init(&BARO_WIRE)){
+
             partsStates.baro = false;
             Serial.println("MS5611 init error");
            // buzzFor(500, 50);
-            //buzzFor(50, 50);
+            buzzFor(50, 50);
             //buzzFor(50, 250);
         }
         else

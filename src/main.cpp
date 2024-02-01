@@ -15,7 +15,6 @@ Adafruit_INA260 ina260 = Adafruit_INA260();
 float x, y, z, r = 0;
 uint32_t start;
 uint8_t counter = 0;
-
 ////    Initilization setup    ////
 void setup(void)
 {
@@ -23,9 +22,9 @@ void setup(void)
     pinMode(BUZZER, OUTPUT);
     pinMode(BUZZER_ENABLE, INPUT_PULLUP);
 
-    pinMode(PIN_RED,   OUTPUT);
+    pinMode(PIN_RED, OUTPUT);
     pinMode(PIN_GREEN, OUTPUT);
-    pinMode(PIN_BLUE,  OUTPUT);
+    pinMode(PIN_BLUE, OUTPUT);
 
     buzzFor(1000, 1000);
     Wire.begin();
@@ -34,8 +33,8 @@ void setup(void)
     ina260.begin();
     mpu.pwr_setup();
     mpu.acc_setup(1);
-    
-    //mpu.gyro_setup(3);
+
+    // mpu.gyro_setup(3);
 
     // start serial monitor
     Serial.begin(SERIAL_MONITOR_BAUD);
@@ -50,7 +49,6 @@ void setup(void)
     }
 
     setParts();
-
 
     // basically rfd uses the most power & since rocket is going to be idle on platorm for awhile dont do anything until bit is sent
     /*
@@ -76,7 +74,6 @@ void setup(void)
 
      Serial.printf("launching\n");
     */
-
 }
 
 ////    Main loop    ////
@@ -86,8 +83,8 @@ void loop(void)
     char string[256] = {0};
     start = millis(); // store current time
 
-   setParts();
-   float volt_battery = ina260.readBusVoltage();
+    setParts();
+    float volt_battery = ina260.readBusVoltage();
 
     // read MS5611
     if (partsStates.baro)
@@ -96,45 +93,59 @@ void loop(void)
         {
             Serial.printf("baro read failed\n");
             errorLED(1);
-            buzzFor(250,250);
-            delay(250);
+            buzzFor(250, 250);
+
+            if (led_debug)
+            {
+                errorLED(6);
+                delay(250);
+
+                errorLED(1);
+            }
+            else 
+            {led_debug=false; 
+            }
         }
     }
 
-    else{
+    else
+    {
         errorLED(1);
         delay(250);
     }
 
-    if(!mpu.get_acc(1,&imu_acc)){
+    /*if(mpu.readFail==true){
+        mpu.readFail=false;
+        mpu.pwr_setup();
+        mpu.gyro_setup(3);
+        mpu.acc_setup(1);
         Serial.printf("imu read failed\n");
         errorLED(2);
         buzzFor(250,250);
     }
-    else{
-        mpu.get_acc(1,&imu_acc);
-    }
+    else{*/
+    mpu.get_acc(1,&imu_acc);
+    
+
     int numbSat, quality;
     char opMode;
     float HDOP, PDOP, sigStrength;
     // read gps
-    
+
     if (partsStates.gps)
     {
         if (gps.read_RMC(&lon, &lat, 4000))
         {
             Serial.printf("gps RMC read failed\n");
             errorLED(3);
-            buzzFor(250,250);
+            // buzzFor(250,250);
         }
     }
-    
-
 
     // print stuff to serial and SD card (need to call array for xyz, use equation for r here)
-   sprintf(
+    sprintf(
         string, outputFormat,
-        timestamp++,volt_battery, imu_acc.XAxis, imu_acc.YAxis, imu_acc.ZAxis, temp, pres, lat, lon);
+        timestamp++, volt_battery, imu_acc.XAxis, imu_acc.YAxis, imu_acc.ZAxis, temp, pres, lat, lon);
 
     Serial.printf("%s", string);
 
@@ -194,7 +205,7 @@ void loop(void)
         transmit(pres, RRC_HEAD_PRESS, timestamp);
         transmit(lat, RRC_HEAD_GPS_LAT, timestamp);
         transmit(lon, RRC_HEAD_GPS_LONG, timestamp);
-        //transmit(volt_battery,RRC_HEAD_BATT_V,timestamp);
+        // transmit(volt_battery,RRC_HEAD_BATT_V,timestamp);
         Serial.println("transmitting");
     }
     while (millis() - start <= 4000) // print every 4 second
