@@ -19,13 +19,13 @@
 #define BARO_WIRE     Wire2
 #define BUZZER        PIN_A12
 #define BUZZER_ENABLE PIN_A13//always apply
-<<<<<<< Updated upstream
-#define IMU_WIRE Wire2
-=======
-//#define IMU_WIRE Wire2
->>>>>>> Stashed changes
-#define AD0_VAL 0
+#define IMU_WIRE      Wire2
+#define AD0_VAL        0
 #define SERIAL_MONITOR_BAUD 115200
+#define PIN_RED        4
+#define PIN_GREEN      3
+#define PIN_BLUE       2                                                                                                                         
+
 long freq = 4000;
 
 ////    Constants    ////
@@ -86,6 +86,52 @@ void buzzFor(unsigned int time_ms, unsigned int after)
 }
 
 
+
+void errorLED(int errorcode)
+{
+  unsigned long time = 0;
+  unsigned long delta = 0;
+  time = millis();
+  
+  switch(errorcode) {
+    case 1:      
+      analogWrite(PIN_RED,   255);
+      analogWrite(PIN_GREEN, 0);
+      analogWrite(PIN_BLUE,  0);
+      break;
+  
+    case 2:
+
+      analogWrite(PIN_RED,   0);
+      analogWrite(PIN_GREEN, 255);
+      analogWrite(PIN_BLUE,  0);
+      break;
+
+    case 3:
+
+      analogWrite(PIN_RED,   0);
+      analogWrite(PIN_GREEN, 0);
+      analogWrite(PIN_BLUE,  255);
+      break;
+
+    case 4:
+
+      analogWrite(PIN_RED,   0);
+      analogWrite(PIN_GREEN, 200);
+      analogWrite(PIN_BLUE,  255);
+
+      break;
+    
+    case 5:
+
+      analogWrite(PIN_RED,   200);
+      analogWrite(PIN_GREEN, 12);
+      analogWrite(PIN_BLUE,  0);
+
+      break;
+  }
+}
+
 void setParts(void)
 {
     // init MS5611
@@ -95,15 +141,15 @@ void setParts(void)
         {
             partsStates.baro = false;
             Serial.println("MS5611 init error");
-            buzzFor(500, 50);
-            buzzFor(50, 50);
-            buzzFor(50, 250);
+           // buzzFor(500, 50);
+            //buzzFor(50, 50);
+            //buzzFor(50, 250);
         }
         else
         {
             partsStates.baro = true;
             Serial.println("MS5611 init OK");
-            buzzFor(50, 100);
+            //buzzFor(50, 100);
         }
     }
 
@@ -111,10 +157,9 @@ void setParts(void)
     if(!partsStates.gps)
     {
         gps.init(&GPS_SERIAL, 9600);
-
         partsStates.gps = true;
         Serial.println("GPS init OK");
-        buzzFor(50, 100);
+        //buzzFor(50, 100);
     }
 
 
@@ -122,10 +167,9 @@ void setParts(void)
     if(!partsStates.rfd)
     {
         RFD_SERIAL.begin(RFD_BAUD);
-
         partsStates.rfd = true;
         Serial.println("RFD init OK");
-        buzzFor(50, 100);
+        //buzzFor(50, 100);
     }
 
 
@@ -136,20 +180,21 @@ void setParts(void)
         {
             partsStates.sdcard = false;
             Serial.println("SD Card init error");
-            buzzFor(500, 50);
-            buzzFor(50, 50);
-            buzzFor(50, 50);
-            buzzFor(50, 250);
+           // buzzFor(500, 50);
+           // buzzFor(50, 50);
+           // buzzFor(50, 50);
+           // buzzFor(50, 250);
 
         }
         else
         {
             partsStates.sdcard = true;
             Serial.println("SD Card init OK");
-            buzzFor(50, 100);
+           // buzzFor(50, 100);
         }
     }
 }
+
 
 
 #endif  //  #ifndef __RRC_HELPER_FUNCS__

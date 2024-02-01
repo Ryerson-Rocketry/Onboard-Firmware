@@ -60,10 +60,9 @@ public:
     void acc_setup(int range);
         
     //data read functions
-    void get_acc(int Anum,struct AStruct *acc);
+    bool get_acc(int Anum,struct AStruct *acc);
     void get_temp(struct TStruct *temp);
     void get_gyro(int Gnum,struct GStruct *gyro);
-
 };
 
 #endif
