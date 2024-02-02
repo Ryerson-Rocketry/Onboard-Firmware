@@ -21,27 +21,54 @@ void setup(void)
 
     pinMode(BUZZER, OUTPUT);
     pinMode(BUZZER_ENABLE, INPUT_PULLUP);
-
     pinMode(PIN_RED, OUTPUT);
     pinMode(PIN_GREEN, OUTPUT);
     pinMode(PIN_BLUE, OUTPUT);
 
-    buzzFor(1000, 1000);
     Wire.begin();
     Wire1.begin();
     Wire2.begin();
-    ina260.begin();
+
+    if(!ina260.begin())
+    {
+          if (led_debug)
+            {
+                errorLED(1);
+                errorLED(0);
+                delay(250);
+                errorLED(1);
+                errorLED(0);
+                delay(250);
+                errorLED(1);
+            }
+            else
+            {
+                led_debug = false;
+            }
+    }
+
     mpu.pwr_setup();
     mpu.acc_setup(1);
 
-    // mpu.gyro_setup(3);
 
     // start serial monitor
     Serial.begin(SERIAL_MONITOR_BAUD);
     if (!Serial)
     {
-        buzzFor(100, 50);
-        buzzFor(100, 500);
+        if (led_debug)
+        {
+            errorLED(6);
+            errorLED(0);
+            delay(250);
+            errorLED(6);
+            errorLED(0);
+            delay(250);
+            errorLED(6);
+        }
+        else
+        {
+            led_debug = false;
+        }
     }
     else
     {
@@ -92,27 +119,10 @@ void loop(void)
         if (baro.getTempPress(&temp, &pres))
         {
             Serial.printf("baro read failed\n");
-            errorLED(1);
-            buzzFor(250, 250);
-
-            if (led_debug)
-            {
-                errorLED(6);
-                delay(250);
-
-                errorLED(1);
-            }
-            else 
-            {led_debug=false; 
-            }
+            errorLED(2);
         }
     }
 
-    else
-    {
-        errorLED(1);
-        delay(250);
-    }
 
     /*if(mpu.readFail==true){
         mpu.readFail=false;
@@ -124,12 +134,9 @@ void loop(void)
         buzzFor(250,250);
     }
     else{*/
-    mpu.get_acc(1,&imu_acc);
-    
+    mpu.get_acc(1, &imu_acc);
 
-    int numbSat, quality;
-    char opMode;
-    float HDOP, PDOP, sigStrength;
+
     // read gps
 
     if (partsStates.gps)
@@ -138,7 +145,6 @@ void loop(void)
         {
             Serial.printf("gps RMC read failed\n");
             errorLED(3);
-            // buzzFor(250,250);
         }
     }
 
@@ -161,7 +167,7 @@ void loop(void)
         else
         {
             Serial.printf("error opening %s\n", logFileName.c_str());
-            errorLED(3);
+            errorLED(5);
             partsStates.sdcard = false;
         }
     }
