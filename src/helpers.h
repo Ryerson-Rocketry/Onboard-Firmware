@@ -17,7 +17,7 @@
 #define BARO_WIRE Wire2
 #define BUZZER PIN_A12
 #define BUZZER_ENABLE PIN_A13 // always apply
-#define IMU_WIRE Wire2
+#define IMU_WIRE Wire1
 #define AD0_VAL 0
 #define SERIAL_MONITOR_BAUD 115200
 #define PIN_RED 4
@@ -152,20 +152,14 @@ void setParts(void)
             partsStates.baro = false;
             Serial.println("MS5611 init error");
 
-            if (led_debug)
-            {
-                errorLED(2);
-                errorLED(0);
-                delay(250);
-                errorLED(2);
-                errorLED(0);
-                delay(250);
-                errorLED(2);
-            }
-            else
-            {
-                led_debug = false;
-            }
+            buzzFor(150, 100);
+            errorLED(2);
+            errorLED(0);
+            delay(100);
+            errorLED(2);
+            errorLED(0);
+            delay(100);
+            errorLED(2);
         }
         else
         {
@@ -184,20 +178,16 @@ void setParts(void)
         }
         else
         {
-            if (led_debug)
-            {
-                errorLED(3);
-                errorLED(0);
-                delay(250);
-                errorLED(3);
-                errorLED(0);
-                delay(250);
-                errorLED(3);
-            }
-            else
-            {
-                led_debug = false;
-            }
+            buzzFor(100, 100);
+
+            errorLED(3);
+            errorLED(0);
+            delay(100);
+            errorLED(3);
+            errorLED(0);
+            delay(100);
+            errorLED(3);
+            Serial.println("gps init error");
         }
     }
 
@@ -213,20 +203,15 @@ void setParts(void)
         }
         else
         {
-            if (led_debug)
-            {
-                errorLED(4);
-                errorLED(0);
-                delay(250);
-                errorLED(4);
-                errorLED(0);
-                delay(250);
-                errorLED(4);
-            }
-            else
-            {
-                led_debug = false;
-            }
+            buzzFor(100, 100);
+
+            errorLED(4);
+            errorLED(0);
+            delay(100);
+            errorLED(4);
+            errorLED(0);
+            delay(100);
+            errorLED(4);
         }
     }
 
@@ -238,20 +223,15 @@ void setParts(void)
             partsStates.sdcard = false;
             Serial.println("SD Card init error");
 
-            if (led_debug)
-            {
-                errorLED(5);
-                errorLED(0);
-                delay(250);
-                errorLED(5);
-                errorLED(0);
-                delay(250);
-                errorLED(5);
-            }
-            else
-            {
-                led_debug = false;
-            }
+            buzzFor(100, 100);
+
+            errorLED(5);
+            errorLED(0);
+            delay(100);
+            errorLED(5);
+            errorLED(0);
+            delay(100);
+            errorLED(5);
         }
         else
         {

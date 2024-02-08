@@ -29,51 +29,25 @@ void setup(void)
     Wire1.begin();
     Wire2.begin();
 
-    if(!ina260.begin())
+    if (!ina260.begin())
     {
-          if (led_debug)
-            {
-                errorLED(1);
-                errorLED(0);
-                delay(250);
-                errorLED(1);
-                errorLED(0);
-                delay(250);
-                errorLED(1);
-            }
-            else
-            {
-                led_debug = false;
-            }
+
+        buzzFor(100, 100);
+
+        errorLED(1);
+        errorLED(0);
+        delay(100);
+        errorLED(1);
+        errorLED(0);
+        delay(100);
+        errorLED(1);
     }
 
     mpu.pwr_setup();
     mpu.acc_setup(1);
 
-
     // start serial monitor
     Serial.begin(SERIAL_MONITOR_BAUD);
-    if (!Serial)
-    {
-        if (led_debug)
-        {
-            errorLED(6);
-            errorLED(0);
-            delay(250);
-            errorLED(6);
-            errorLED(0);
-            delay(250);
-            errorLED(6);
-        }
-        else
-        {
-            led_debug = false;
-        }
-    }
-    else
-    {
-        Serial.println("serial monitor started");
-    }
 
     setParts();
 
@@ -123,19 +97,7 @@ void loop(void)
         }
     }
 
-
-    /*if(mpu.readFail==true){
-        mpu.readFail=false;
-        mpu.pwr_setup();
-        mpu.gyro_setup(3);
-        mpu.acc_setup(1);
-        Serial.printf("imu read failed\n");
-        errorLED(2);
-        buzzFor(250,250);
-    }
-    else{*/
     mpu.get_acc(1, &imu_acc);
-
 
     // read gps
 
