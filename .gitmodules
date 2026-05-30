@@ -14,3 +14,6 @@
 	path = lib/MPU6500
 	url = https://github.com/Sowhum/MPU6050-I2C.git
 	branch = 6500
+[submodule "lib/ina260"]
+	path = lib/ina260
+	url = https://github.com/adafruit/Adafruit_INA260.git

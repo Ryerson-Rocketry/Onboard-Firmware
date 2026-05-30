@@ -44,10 +44,6 @@ double                     pres;
 double                     lon;
 double                     lat;
 double                     volt_battery;
-float                      x;
-float                      y;
-float                      z;
-float                      r;
 AStruct                    imu_acc;
 GStruct                    imu_gyro;
 uint32_t                   start;
@@ -55,7 +51,6 @@ uint8_t                    counter = 0;
 
 
 /*
-
 const char outputFormat[] =
     R"""(
 timestamp:   %lu
@@ -67,9 +62,8 @@ Location:    %lf, %lf
 )""";
 */
 
-//Update May 20: Added spaces cause it was AIDS to read
 const char outputFormat[] =
-    R"""(%lu, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf
+    R"""(timestamp %lu, %lf V, %lf g, %lf g, %lf g, %lf rad/s, %lf rad/s, %lf rad/s, %lf C, %lf mbar, %lf, %lf
 )""";
 
 

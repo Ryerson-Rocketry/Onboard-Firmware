@@ -90,14 +90,14 @@ void loop(void)
         if (dataFile)
         {
             dataFile.println(string);
-            status |= DATA_SD;
+            status &= ~DATA_SD;
             dataFile.close();
         }
         else
         {
             Serial.printf("error opening %s\n", logFileName.c_str());
             partsStates.sdcard = false;
-            status &= ~DATA_SD;
+            status |= DATA_SD;
         }
     }
 }
