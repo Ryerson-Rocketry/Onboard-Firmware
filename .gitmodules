@@ -10,3 +10,7 @@
 [submodule "lib/rrc_encoder"]
 	path = include/rrc_encoder
 	url = https://github.com/Ryerson-Rocketry/Library-RRC-encoder.git
+[submodule "lib/MPU6500"]
+	path = lib/MPU6500
+	url = https://github.com/Sowhum/MPU6050-I2C.git
+	branch = 6500
