@@ -36,8 +36,9 @@
 #define RF95_CR                 5
 #define RF95_PREAMBLE           12
 #define RF95_PWR                23
+#define TX_RATE                 1000
 #define CALLSIGN                "VE3SOH"
-#define GROUND                  "TORTILLASUS"
+#define GROUND                  "MET01"
 
 
 ////    Constants    ////

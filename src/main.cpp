@@ -25,7 +25,7 @@ void setup(void)
 void loop(void)
 {
     static uint32_t timestamp = 0;
-    
+    static uint32_t ping      = 0;    
     start = millis(); 
 
     setParts();
@@ -108,20 +108,20 @@ void loop(void)
 
     snprintf(packet, sizeof(packet),
     "%s>%s:"
-    "PKT=%d,"
-    "BAT=%.1fV,"
-    "ACC X=%.2fg,"
-    "ACC Y=%.2fg,"
-    "ACC Z=%.2fg,"
-    "GYRO X=%.2frad/s,"
-    "GYRO Y=%.2frad/s,"
-    "GYRO Z=%.2frad/s,"
-    "TEMP=%.2fC,"
-    "PRES=%.2fmbar,"
-    "ALT=%.2fft",
-    "LAT=%lf,"
-    "LON=%lf",
-    "STAT=%08X",
+    "P=%d,"
+    "B=%.1fV,"
+    "AX=%.2fg,"
+    "AY=%.2fg,"
+    "AZ=%.2fg,"
+    "GX=%.2frad/s,"
+    "GY=%.2frad/s,"
+    "GZ=%.2frad/s,"
+    "T=%.2fC,"
+    "P=%.2fmbar,"
+    "A=%.2fft",
+    "L=%lf,"
+    "LO=%lf,"
+    "S=%08X,",
     CALLSIGN,
     GROUND,
     packetnum++,
@@ -138,20 +138,23 @@ void loop(void)
     lat,
     lon,
     (unsigned long)status);
- 
-    if (partsStates.lora)
+
+    if ((start - ping) >= TX_RATE)
     {
-        rf96.send((uint8_t*)packet, strlen(packet));
-        if (rf96.waitPacketSent())
+        ping+=TX_RATE;
+        if (partsStates.lora)
         {
-            status &= ~DATA_LORA;
-            Serial.println("Packet was sent");
-        }
-        else
-        {
-            status |= DATA_LORA;
-            Serial.println("Packet Error");
+            rf96.send((uint8_t*)packet, strlen(packet));
+            if (rf96.waitPacketSent())
+            {
+                status &= ~DATA_LORA;
+                Serial.println("Packet was sent");
+            }
+            else
+            {
+                status |= DATA_LORA;
+                Serial.println("Packet Error");
+            }
         }
     }
-    delay(2000);
 }
