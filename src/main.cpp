@@ -1,10 +1,5 @@
 ////    Includes    ////
 #include "helpers.h"
-#include <Arduino.h>
-#include <math.h>
-#include <Wire.h>
-#include <SPI.h> 
-#include <RH_RF95.h> 
 
 ////    Initilization setup    ////
 void setup(void)
@@ -12,9 +7,17 @@ void setup(void)
     SPI.begin();
     Wire.begin();
     Serial.begin(SERIAL_MONITOR_BAUD);
-    
-    setParts();
 
+    pinMode(RFM95_RST, OUTPUT);
+    digitalWrite(RFM95_RST, HIGH);
+    delay(10);
+    
+    digitalWrite(RFM95_RST, LOW);
+    delay(10);
+    digitalWrite(RFM95_RST, HIGH);
+    delay(10);
+
+    setParts();
     Serial.printf("Setup Done\n");
 }
 
@@ -22,7 +25,7 @@ void setup(void)
 void loop(void)
 {
     static uint32_t timestamp = 0;
-    char string[256] = {0};
+    
     start = millis(); 
 
     setParts();
@@ -37,6 +40,8 @@ void loop(void)
             status |= DATA_BARO;
         }
         else{
+            altitude =  44330.0f *(1.0f - powf(pres / pad_pres,0.190295f));
+            altitude*=  3.28084f; //ft
             status &= ~DATA_BARO;
         }
     }
@@ -78,10 +83,10 @@ void loop(void)
     }
 
     sprintf(
-        string, outputFormat,
-        timestamp++, volt_battery, imu_acc.XAxis, imu_acc.YAxis, imu_acc.ZAxis, imu_gyro.XAxis, imu_gyro.YAxis, imu_gyro.ZAxis, temp, pres, lat, lon);
+        sensor_data, outputFormat,
+        timestamp++, volt_battery, imu_acc.XAxis, imu_acc.YAxis, imu_acc.ZAxis, imu_gyro.XAxis, imu_gyro.YAxis, imu_gyro.ZAxis, temp, pres, altitude, lat, lon);
 
-    Serial.printf("%s", string);
+    Serial.printf("%s", sensor_data);
 
     if (partsStates.sdcard)
     {
@@ -89,7 +94,7 @@ void loop(void)
 
         if (dataFile)
         {
-            dataFile.println(string);
+            dataFile.println(sensor_data);
             status &= ~DATA_SD;
             dataFile.close();
         }
@@ -100,4 +105,53 @@ void loop(void)
             status |= DATA_SD;
         }
     }
+
+    snprintf(packet, sizeof(packet),
+    "%s>%s:"
+    "PKT=%d,"
+    "BAT=%.1fV,"
+    "ACC X=%.2fg,"
+    "ACC Y=%.2fg,"
+    "ACC Z=%.2fg,"
+    "GYRO X=%.2frad/s,"
+    "GYRO Y=%.2frad/s,"
+    "GYRO Z=%.2frad/s,"
+    "TEMP=%.2fC,"
+    "PRES=%.2fmbar,"
+    "ALT=%.2fft",
+    "LAT=%lf,"
+    "LON=%lf",
+    "STAT=%08X",
+    CALLSIGN,
+    GROUND,
+    packetnum++,
+    volt_battery,
+    imu_acc.XAxis,
+    imu_acc.YAxis,
+    imu_acc.ZAxis,
+    imu_gyro.XAxis,
+    imu_gyro.YAxis,
+    imu_gyro.ZAxis,
+    temp,
+    pres,
+    altitude,
+    lat,
+    lon,
+    (unsigned long)status);
+ 
+    if (partsStates.lora)
+    {
+        rf96.send((uint8_t*)packet, strlen(packet));
+        if (rf96.waitPacketSent())
+        {
+            status &= ~DATA_LORA;
+            Serial.println("Packet was sent");
+        }
+        else
+        {
+            status |= DATA_LORA;
+            Serial.println("Packet Error");
+        }
+    }
+    delay(2000);
 }

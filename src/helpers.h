@@ -1,11 +1,12 @@
 #ifndef __RRC_HELPER_FUNCS__
 #define __RRC_HELPER_FUNCS__
 
-
 ////    Includes    ////
 #include "rrc_encoder/src/rrc_encoder.h"
 #include <Arduino.h>
 #include <SPI.h> 
+#include <math.h>
+#include <Wire.h>
 #include <gps.h>
 #include <ms5611.h>
 #include <MPU6050.h> 
@@ -24,46 +25,48 @@
 #define PIN_GREEN               3
 #define PIN_BLUE                2       
 #define SD_CS_PIN               10
-#define RFM96_CS                9
-#define RFM96_GPIO              5
-#define RF96_FREQ               433.0
 #define BUZZER                  PIN_A6
 #define BUZZER_ENABLE           PIN_A7
+#define RFM95_CS                10
+#define RFM95_RST               5
+#define RFM95_INT               2
+#define RF95_FREQ               434.0
+#define RF95_BW                 125000
+#define RF95_SF                 9
+#define RF95_CR                 5
+#define RF95_PREAMBLE           12
+#define RF95_PWR                23
+#define CALLSIGN                "VE3SOH"
+#define GROUND                  "TORTILLASUS"
 
 
 ////    Constants    ////
+long        
+long        freq               = 1000;
+bool        led_debug          = false;
+bool        built_in_SD_card   = true;
+int         acc_range          = 1; 
+int         gyro_range         = 1; 
+int         packetnum          = 0;
+uint8_t     counter            = 0;
+String      logFileName        = "log.txt";
+char        sensor_data[256]   = {0};
+double      pad_pres           = 1013.25f;
+double      pres;
+double      temp;
+double      altitude;
+double      lon;
+double      lat;
+double      volt_battery;
+uint32_t    start;
+char        packet[256];
+AStruct     imu_acc;
+GStruct     imu_gyro;
 
-long freq               = 1000;
-bool led_debug          = false;
-bool built_in_SD_card   = true;
-int  acc_range          = 1; 
-int  gyro_range         = 1; 
-String logFileName      = "log.txt";
-double                     temp;
-double                     pres;
-double                     lon;
-double                     lat;
-double                     volt_battery;
-AStruct                    imu_acc;
-GStruct                    imu_gyro;
-uint32_t                   start;
-uint8_t                    counter = 0;
 
-
-/*
+// timestamp, Voltage, X acc, Y acc, Z acc, X gyro, Y gyro, Z gyro, Temp, Press, Altitude, Lat, Long
 const char outputFormat[] =
-    R"""(
-timestamp:   %lu
-voltage battery: %lf V
-x = %lf g    y = %lf g   z = %lf g   total = %lf g
-T = %lf C    P = %lf mbar
-Location:    %lf, %lf
-
-)""";
-*/
-
-const char outputFormat[] =
-    R"""(timestamp %lu, %lf V, %lf g, %lf g, %lf g, %lf rad/s, %lf rad/s, %lf rad/s, %lf C, %lf mbar, %lf, %lf
+    R"""(timestamp %lu, %lf V, %lf g, %lf g, %lf g, %lf rad/s, %lf rad/s, %lf rad/s, %lf C, %lf mbar, %lf ft, %lf, %lf
 )""";
 
 
@@ -71,10 +74,10 @@ const char outputFormat[] =
 
 Ms5611              baro;
 GPS                 gps;
-RH_RF95             rf96(RFM96_CS, RFM96_GPIO);
 MPU                 mpu;
 Adafruit_INA260     ina260;
 SDClass             sd;
+RH_RF95             rf96(RFM95_CS, RFM95_INT);
 
 struct
 {
@@ -93,12 +96,14 @@ enum initStatus
     FAULT_SD   = (1 << 2),
     FAULT_INA  = (1 << 3),
     FAULT_IMU  = (1 << 4),
+    FAULT_LORA = (1 << 5),
 
-    DATA_BARO =  (1 << 5),
-    DATA_GPS  =  (1 << 6),
-    DATA_SD   =  (1 << 7),
-    DATA_INA  =  (1 << 8),
-    DATA_IMU  =  (1 << 9),
+    DATA_BARO =  (1 << 6),
+    DATA_GPS  =  (1 << 7),
+    DATA_SD   =  (1 << 8),
+    DATA_INA  =  (1 << 9),
+    DATA_IMU  =  (1 << 10),
+    DATA_LORA =  (1 << 11),
 };
 
 uint32_t status = 0;
@@ -204,6 +209,33 @@ void setParts(void)
             partsStates.mpu = true;
             status &= ~FAULT_IMU;
             Serial.println("MPU6050 init OK");
+        }
+    }
+
+    //init radio
+    if(!partsStates.lora)
+    {
+        if(!rf96.init()){
+            partsStates.lora = false;
+            Serial.println("Radio init error");
+            status |= FAULT_LORA;
+        }
+        else if(!rf96.setFrequency(RF95_FREQ)){
+            partsStates.lora = false;
+            Serial.println("Radio Frequency set Fail");
+            status |= FAULT_LORA;
+        }
+        else{
+            partsStates.lora = true;
+            status &= ~FAULT_LORA;
+            rf96.setSignalBandwidth(RF95_BW);
+            rf96.setSpreadingFactor(RF95_SF);
+            rf96.setCodingRate4(RF95_CR);
+            rf96.setPayloadCRC(true);
+            rf96.setPreambleLength(RF95_PREAMBLE);
+            rf96.setTxPower(RF95_PWR, false);
+
+            Serial.println("Radio configured");
         }
     }
 }
