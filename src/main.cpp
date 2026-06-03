@@ -25,7 +25,7 @@ void setup(void)
 void loop(void)
 {
     static uint32_t timestamp = 0;
-    static uint32_t ping      = 0;    
+    static uint32_t ping      = 0;
     start = millis(); 
 
     setParts();
@@ -107,45 +107,28 @@ void loop(void)
         }
     }
 
-    snprintf(packet, sizeof(packet),
-    "%s>%s:"
-    "P=%d,"
-    "B=%.1fV,"
-    "AX=%.2fg,"
-    "AY=%.2fg,"
-    "AZ=%.2fg,"
-    "GX=%.2frad/s,"
-    "GY=%.2frad/s,"
-    "GZ=%.2frad/s,"
-    "T=%.2fC,"
-    "P=%.2fmbar,"
-    "A=%.2fft",
-    "L=%lf,"
-    "LO=%lf,"
-    "S=%08X,",
-    CALLSIGN,
-    GROUND,
-    packetnum++,
-    volt_battery,
-    imu_acc.XAxis,
-    imu_acc.YAxis,
-    imu_acc.ZAxis,
-    imu_gyro.XAxis,
-    imu_gyro.YAxis,
-    imu_gyro.ZAxis,
-    temp,
-    pres,
-    altitude,
-    lat,
-    lon,
-    (unsigned long)status);
+    //build packet
+    tx.pktnum   = packetnum++;
+    tx.bat      = (uint16_t)(volt_battery * 1000.0f);
+    tx.ax       = (int16_t)(imu_acc.XAxis * 1000.0f);
+    tx.ay       = (int16_t)(imu_acc.YAxis * 1000.0f);
+    tx.az       = (int16_t)(imu_acc.ZAxis * 1000.0f);
+    tx.gx       = (int16_t)(imu_gyro.XAxis * 1000.0f);
+    tx.gy       = (int16_t)(imu_gyro.YAxis * 1000.0f);
+    tx.gz       = (int16_t)(imu_gyro.ZAxis * 1000.0f);
+    tx.temp     = (int16_t)(temp * 100.0f);
+    tx.pres     = (uint16_t)(pres * 10.0f);
+    tx.alt      = (int16_t)altitude;
+    tx.lat      = (int32_t)(lat * 10000000.0);
+    tx.lon      = (int32_t)(lon * 10000000.0);
+    tx.status   = status;
 
     if ((start - ping) >= TX_RATE)
     {
         ping+=TX_RATE;
         if (partsStates.lora)
         {
-            rf96.send((uint8_t*)packet, strlen(packet));
+            rf96.send((uint8_t*)&tx, sizeof(tx));;
             if (rf96.waitPacketSent())
             {
                 status &= ~DATA_LORA;

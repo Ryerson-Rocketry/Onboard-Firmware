@@ -60,7 +60,6 @@ double      lon;
 double      lat;
 double      volt_battery;
 uint32_t    start;
-char        packet[256];
 AStruct     imu_acc;
 GStruct     imu_gyro;
 
@@ -78,6 +77,28 @@ GPS                 gps;
 MPU                 mpu;
 Adafruit_INA260     ina260;
 RH_RF95             rf96(RFM95_CS, RFM95_INT);
+
+#pragma pack(push, 1)
+
+struct packet
+{
+    uint16_t pktnum;
+    uint16_t bat;
+    int16_t ax;
+    int16_t ay;
+    int16_t az;
+    int16_t gx;
+    int16_t gy;
+    int16_t gz;
+    int16_t temp;
+    uint16_t pres;
+    int16_t alt;
+    int32_t lat;
+    int32_t lon;
+    uint32_t status;
+} tx;
+
+#pragma pack(pop)
 
 struct
 {
