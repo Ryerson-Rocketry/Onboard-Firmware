@@ -108,6 +108,7 @@ void loop(void)
     }
 
     //build packet
+    tx.callsign = CALLSIGN;
     tx.pktnum   = packetnum++;
     tx.bat      = (uint16_t)(volt_battery * 1000.0f);
     tx.ax       = (int16_t)(imu_acc.XAxis * 1000.0f);
