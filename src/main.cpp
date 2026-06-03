@@ -60,7 +60,8 @@ void loop(void)
 
     if (partsStates.ina)
     {
-        if (volt_battery = ina260.readBusVoltage(); volt_battery >100)
+        volt_battery = ina260.readBusVoltage();
+        if (volt_battery >100)
         {
             Serial.printf("ina read failed\n");
             status |= DATA_INA;

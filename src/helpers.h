@@ -17,19 +17,19 @@
 
 ////    Defines    ////
 
-#define GPS_SERIAL              Serial7
+#define GPS_SERIAL              Serial1
 #define BARO_WIRE               Wire     
 #define AD0_VAL                 0
 #define SERIAL_MONITOR_BAUD     115200
 #define PIN_RED                 4
 #define PIN_GREEN               3
 #define PIN_BLUE                2       
-#define SD_CS_PIN               10
+#define SD_CS_PIN               9
 #define BUZZER                  PIN_A6
 #define BUZZER_ENABLE           PIN_A7
 #define RFM95_CS                10
-#define RFM95_RST               5
-#define RFM95_INT               2
+#define RFM95_RST               4
+#define RFM95_INT               7
 #define RF95_FREQ               434.0
 #define RF95_BW                 125000
 #define RF95_SF                 9
@@ -77,7 +77,6 @@ Ms5611              baro;
 GPS                 gps;
 MPU                 mpu;
 Adafruit_INA260     ina260;
-SDClass             sd;
 RH_RF95             rf96(RFM95_CS, RFM95_INT);
 
 struct
@@ -167,7 +166,7 @@ void setParts(void)
     // init SD card
     if(!partsStates.sdcard)
     {
-        if (!sd.begin(SD_CS_PIN))
+        if (!SD.begin(SD_CS_PIN))
         {
             partsStates.sdcard = false;
             Serial.println("SD Card init error");
